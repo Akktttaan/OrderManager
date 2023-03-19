@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Api.Infrastructure.Logger;
+using Application.Interfaces;
 using Application.Interfaces.Services;
 using AutoMapper;
 using Dal;
@@ -12,6 +13,9 @@ namespace WebApi.Ioc;
 
 public static class IocConfig
 {
+    /// <summary>
+    /// Метод расширения добавляющий конфигурацию проекта
+    /// </summary>
     public static IServiceCollection AddConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton(configuration);
@@ -19,6 +23,9 @@ public static class IocConfig
         return services;
     }
     
+    /// <summary>
+    /// Метод расширения добавляющий UnitOfWork
+    /// </summary>
     public static IServiceCollection AddUnitOfWork(this IServiceCollection services, [FromServices] IConfiguration configuration)
     {
         services.AddDbContext<AppDbContext>(opt =>
@@ -30,6 +37,9 @@ public static class IocConfig
         return services;
     }
 
+    /// <summary>
+    /// Метод расширения добавляющий сервисы приложения
+    /// </summary>
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
         var assembly = typeof(IService).Assembly;
@@ -53,10 +63,38 @@ public static class IocConfig
         return services;
     }
 
+    /// <summary>
+    /// Метод расширения добавляющий маппер AutoMapper
+    /// </summary>
     public static IServiceCollection AddAutoMapper(this IServiceCollection services)
     {
         services.AddAutoMapper(typeof(IBaseEntity));
         services.AddAutoMapper(typeof(MappingProfile));
+
+        return services;
+    }
+    
+    /// <summary>
+    /// Метод расширения добавляющий сервис логирования
+    /// </summary>
+    public static IServiceCollection AddCustomerLogger(this IServiceCollection services)
+    {
+        services.AddTransient<ICustomLogger, NLogger>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Метод расширения добавляющий CORS
+    /// </summary>
+    public static IServiceCollection AddCorsPolicy(this IServiceCollection services)
+    {
+        services.AddCors(options => options.AddPolicy("CorsPolicy",
+            builder => builder.SetIsOriginAllowed(_ => true)
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .WithExposedHeaders("Content-Disposition")
+                .AllowCredentials()));
 
         return services;
     }

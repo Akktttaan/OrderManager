@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Api.Application\Api.Application.csproj" />
     <ProjectReference Include="..\Api.Dal\Api.Dal.csproj" />
+    <ProjectReference Include="..\Api.Infrastructure\Api.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

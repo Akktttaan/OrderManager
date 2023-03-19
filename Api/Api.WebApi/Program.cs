@@ -1,3 +1,4 @@
+using Api.Infrastructure.MiddleWares;
 using Dal;
 using WebApi.Ioc;
 
@@ -14,20 +15,25 @@ builder.Services
     .AddUnitOfWork(builder.Configuration)
     .AddServices()
     .AddAutoMapper()
-    .AddCors(options => options.AddPolicy("CorsPolicy",
-        builder => builder.SetIsOriginAllowed(_ => true)
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .WithExposedHeaders("Content-Disposition")
-            .AllowCredentials()));
+    .AddCorsPolicy()
+    .AddCustomerLogger();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(uiBind =>
+        uiBind.SwaggerEndpoint
+            ("/swagger/v1/swagger.json", "OrderManager Api")
+    );
+}
+else
+{
+    app.UseHsts();
+    app.UseMiddleware<ErrorHandlingMiddleware>();
 }
 
 app.UseHttpsRedirection();
@@ -39,15 +45,6 @@ app.UseCors("CorsPolicy");
 app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
 using var scope = app.Services.CreateScope();
-var services = scope.ServiceProvider;
-try
-{
-    SeedData.Initialize(services);
-}
-catch (Exception ex)
-{
-    var logger = services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(ex, "An error occurred seeding the database.");
-}
+SeedData.Initialize(scope.ServiceProvider);
 
 app.Run();

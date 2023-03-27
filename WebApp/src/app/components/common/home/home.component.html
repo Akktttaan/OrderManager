@@ -1,1 +1,97 @@
-<div></div>
+
+<h1>Заказы</h1>
+<button mat-raised-button color="primary" type="button" (click)="addOrder()">
+  Добавить заказ
+</button>
+<mat-form-field appearance="outline" style="margin-left: 50px">
+  <mat-label>Введите промежуток времени</mat-label>
+  <mat-date-range-input [rangePicker]="picker" >
+    <input matStartDate placeholder="Start date" [(ngModel)]="filterForm.dateFrom">
+    <input matEndDate placeholder="End date" [(ngModel)]="filterForm.dateTo">
+  </mat-date-range-input>
+  <mat-hint>MM/DD/YYYY – MM/DD/YYYY</mat-hint>
+  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+  <mat-date-range-picker #picker></mat-date-range-picker>
+</mat-form-field>
+<br>
+<h2>Фильтры</h2>
+<mat-form-field appearance="outline">
+  <mat-label>Номер заказа</mat-label>
+  <mat-select multiple [(ngModel)]="filterForm.orderNumbers">
+    <mat-option *ngFor="let item of dataForFilters.orderNumbers" [value]="item">{{item}}</mat-option>
+  </mat-select>
+</mat-form-field>
+<mat-form-field appearance="outline">
+  <mat-label>Идентификатор поставщика</mat-label>
+  <mat-select multiple [(ngModel)]="filterForm.providerIds">
+    <mat-option *ngFor="let item of dataForFilters.providerIds" [value]="item">{{item}}</mat-option>
+  </mat-select>
+</mat-form-field>
+<mat-form-field appearance="outline">
+  <mat-label>Наименование строки заказа</mat-label>
+  <mat-select multiple [(ngModel)]="filterForm.orderItemNames">
+    <mat-option *ngFor="let item of dataForFilters.orderItemNames" [value]="item">{{item}}</mat-option>
+  </mat-select>
+</mat-form-field>
+<mat-form-field appearance="outline">
+  <mat-label>Единица строки заказа</mat-label>
+  <mat-select multiple [(ngModel)]="filterForm.orderItemUnits">
+    <mat-option *ngFor="let item of dataForFilters.orderItemUnits" [value]="item">{{item}}</mat-option>
+  </mat-select>
+</mat-form-field>
+<mat-form-field appearance="outline">
+  <mat-label>Наименование поставщиков</mat-label>
+  <mat-select multiple [(ngModel)]="filterForm.providerNames">
+    <mat-option *ngFor="let item of dataForFilters.providerNames" [value]="item">{{item}}</mat-option>
+  </mat-select>
+</mat-form-field>
+
+<button mat-raised-button type="button" (click)="filterOrder()">Применить фильтры</button>
+<mat-spinner *ngIf="isLoadingSbj | async"></mat-spinner>
+
+<table mat-table [dataSource]="orders" >
+  <ng-container matColumnDef="id">
+    <th mat-header-cell *matHeaderCellDef> Идентификатор </th>
+    <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="number">
+    <th mat-header-cell *matHeaderCellDef> Номер </th>
+    <td mat-cell *matCellDef="let element"> {{element.number}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="date">
+    <th mat-header-cell *matHeaderCellDef> Дата </th>
+    <td mat-cell *matCellDef="let element"> {{element.date | date: 'dd.MM.yyyy'}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="providerId">
+    <th mat-header-cell *matHeaderCellDef> Идентификатор поставщика </th>
+    <td mat-cell *matCellDef="let element"> {{element.providerId}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="provider">
+    <th mat-header-cell *matHeaderCellDef> Наименование поставщика </th>
+    <td mat-cell *matCellDef="let element"> {{element.provider.name}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="actions">
+    <th mat-header-cell *matHeaderCellDef></th>
+    <td mat-cell *matCellDef="let element" class="action-cell">
+      <button mat-button (click)="editOrder(element)">
+        <mat-icon aria-label="Edit">edit</mat-icon>
+      </button>
+      <button mat-button (click)="deleteOrder(element)">
+        <mat-icon aria-label="Delete">delete</mat-icon>
+      </button>
+    </td>
+  </ng-container>
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row class="custom-row"
+      *matRowDef="let row;
+      columns: displayedColumns;"
+  ></tr>
+</table>
+
+
+

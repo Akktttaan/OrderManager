@@ -1,0 +1,29 @@
+<form [formGroup]="dataForm" (ngSubmit)="onSubmit()">
+  <h1 mat-dialog-title>Создание/редактирование заказа</h1>
+  <div mat-dialog-content>
+    <mat-form-field appearance="outline">
+      <mat-label>Номер</mat-label>
+      <input type="text" matInput formControlName="number">
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Дата</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="date">
+      <mat-hint>MM/DD/YYYY</mat-hint>
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Номер</mat-label>
+      <mat-select formControlName="providerId">
+        <mat-option *ngFor="let item of providers" [value]="item.id">{{item.name}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button mat-raised-button color="primary" type="button">Добавить строку заказа</button>
+    
+  </div>
+  <div mat-dialog-actions>
+    <button mat-button type="button" (click)="onNoClick()">Отмена</button>
+    <button mat-button type="submit" (click)="onSubmit()">Сохранить</button>
+  </div>
+</form>
+

@@ -20,9 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Api.Application\Api.Application.csproj" />
-    <ProjectReference Include="..\Api.Dal\Api.Dal.csproj" />
-    <ProjectReference Include="..\Api.Infrastructure\Api.Infrastructure.csproj" />
+    <ProjectReference Include="..\Api.Core.Application\Api.Core.Application.csproj" />
+    <ProjectReference Include="..\Api.Core.Dal\Api.Core.Dal.csproj" />
   </ItemGroup>
 
 </Project>

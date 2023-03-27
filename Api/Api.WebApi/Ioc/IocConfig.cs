@@ -1,7 +1,4 @@
-﻿using Api.Infrastructure.Logger;
-using Application.Interfaces;
-using Application.Interfaces.Services;
-using AutoMapper;
+﻿using Application.Interfaces;
 using Dal;
 using Dal.Interfaces;
 using Domain;
@@ -50,14 +47,17 @@ public static class IocConfig
             .Select(x => new
             {
                 serviceInterface = x,
-                serviceImplementaion = assembly
+                serviceImplementaions = assembly
                     .GetTypes()
-                    .FirstOrDefault(x.IsAssignableFrom)
+                    .Where(t => x.IsAssignableFrom(t) && t.IsClass)
+                    .ToList()
             });
         foreach (var servicePair in servicePairs)
         {
-            if (servicePair.serviceImplementaion is not null)
-                services.AddScoped(servicePair.serviceInterface, servicePair.serviceImplementaion);
+            foreach (var implementation in servicePair.serviceImplementaions)
+            {
+                services.AddScoped(servicePair.serviceInterface, implementation);
+            }
         }
         
         return services;
@@ -70,16 +70,6 @@ public static class IocConfig
     {
         services.AddAutoMapper(typeof(IBaseEntity));
         services.AddAutoMapper(typeof(MappingProfile));
-
-        return services;
-    }
-    
-    /// <summary>
-    /// Метод расширения добавляющий сервис логирования
-    /// </summary>
-    public static IServiceCollection AddCustomerLogger(this IServiceCollection services)
-    {
-        services.AddTransient<ICustomLogger, NLogger>();
 
         return services;
     }

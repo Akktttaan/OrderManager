@@ -1,4 +1,3 @@
-using Api.Infrastructure.MiddleWares;
 using Dal;
 using WebApi.Ioc;
 
@@ -15,8 +14,7 @@ builder.Services
     .AddUnitOfWork(builder.Configuration)
     .AddServices()
     .AddAutoMapper()
-    .AddCorsPolicy()
-    .AddCustomerLogger();
+    .AddCorsPolicy();
 
 var app = builder.Build();
 
@@ -30,11 +28,8 @@ if (app.Environment.IsDevelopment())
             ("/swagger/v1/swagger.json", "OrderManager Api")
     );
 }
-else
-{
-    app.UseHsts();
-    app.UseMiddleware<ErrorHandlingMiddleware>();
-}
+
+app.UseHsts();
 
 app.UseHttpsRedirection();
 app.UseRouting();

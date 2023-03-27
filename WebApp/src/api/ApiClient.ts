@@ -27,25 +27,181 @@ export class ApiClient {
   }
 
   /**
+   * @param dateFrom (optional)
+   * @param dateTo (optional)
+   * @param orderNumbers (optional)
+   * @param providerIds (optional)
+   * @param orderItemUnits (optional)
+   * @param orderItemNames (optional)
+   * @param providerNames (optional)
    * @return Success
    */
-  item(): Observable<void> {
-    let url_ = this.baseUrl + "/Api/item";
+  filteredOrder(dateFrom: Date | undefined, dateTo: Date | undefined, orderNumbers: string[] | undefined, providerIds: number[] | undefined, orderItemUnits: string[] | undefined, orderItemNames: string[] | undefined, providerNames: string[] | undefined): Observable<OrderViewData[]> {
+    let url_ = this.baseUrl + "/Order/filtered-order?";
+    if (dateFrom === null)
+      throw new Error("The parameter 'dateFrom' cannot be null.");
+    else if (dateFrom !== undefined)
+      url_ += "DateFrom=" + encodeURIComponent(dateFrom ? "" + dateFrom.toISOString() : "") + "&";
+    if (dateTo === null)
+      throw new Error("The parameter 'dateTo' cannot be null.");
+    else if (dateTo !== undefined)
+      url_ += "DateTo=" + encodeURIComponent(dateTo ? "" + dateTo.toISOString() : "") + "&";
+    if (orderNumbers === null)
+      throw new Error("The parameter 'orderNumbers' cannot be null.");
+    else if (orderNumbers !== undefined)
+      orderNumbers && orderNumbers.forEach(item => { url_ += "OrderNumbers=" + encodeURIComponent("" + item) + "&"; });
+    if (providerIds === null)
+      throw new Error("The parameter 'providerIds' cannot be null.");
+    else if (providerIds !== undefined)
+      providerIds && providerIds.forEach(item => { url_ += "ProviderIds=" + encodeURIComponent("" + item) + "&"; });
+    if (orderItemUnits === null)
+      throw new Error("The parameter 'orderItemUnits' cannot be null.");
+    else if (orderItemUnits !== undefined)
+      orderItemUnits && orderItemUnits.forEach(item => { url_ += "OrderItemUnits=" + encodeURIComponent("" + item) + "&"; });
+    if (orderItemNames === null)
+      throw new Error("The parameter 'orderItemNames' cannot be null.");
+    else if (orderItemNames !== undefined)
+      orderItemNames && orderItemNames.forEach(item => { url_ += "OrderItemNames=" + encodeURIComponent("" + item) + "&"; });
+    if (providerNames === null)
+      throw new Error("The parameter 'providerNames' cannot be null.");
+    else if (providerNames !== undefined)
+      providerNames && providerNames.forEach(item => { url_ += "ProviderNames=" + encodeURIComponent("" + item) + "&"; });
     url_ = url_.replace(/[?&]$/, "");
 
     let options_ : any = {
       observe: "response",
       responseType: "blob",
       headers: new HttpHeaders({
+        "Accept": "text/plain"
       })
     };
 
     return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
-      return this.processItem(response_);
+      return this.processFilteredOrder(response_);
     })).pipe(_observableCatch((response_: any) => {
       if (response_ instanceof HttpResponseBase) {
         try {
-          return this.processItem(response_ as any);
+          return this.processFilteredOrder(response_ as any);
+        } catch (e) {
+          return _observableThrow(e) as any as Observable<OrderViewData[]>;
+        }
+      } else
+        return _observableThrow(response_) as any as Observable<OrderViewData[]>;
+    }));
+  }
+
+  protected processFilteredOrder(response: HttpResponseBase): Observable<OrderViewData[]> {
+    const status = response.status;
+    const responseBlob =
+      response instanceof HttpResponse ? response.body :
+        (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+    let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+    if (status === 200) {
+      return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200)
+            result200!.push(OrderViewData.fromJS(item));
+        }
+        else {
+          result200 = <any>null;
+        }
+        return _observableOf(result200);
+      }));
+    } else if (status !== 200 && status !== 204) {
+      return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      }));
+    }
+    return _observableOf(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  orderAll(): Observable<OrderViewData[]> {
+    let url_ = this.baseUrl + "/Order/order";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_ : any = {
+      observe: "response",
+      responseType: "blob",
+      headers: new HttpHeaders({
+        "Accept": "text/plain"
+      })
+    };
+
+    return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+      return this.processOrderAll(response_);
+    })).pipe(_observableCatch((response_: any) => {
+      if (response_ instanceof HttpResponseBase) {
+        try {
+          return this.processOrderAll(response_ as any);
+        } catch (e) {
+          return _observableThrow(e) as any as Observable<OrderViewData[]>;
+        }
+      } else
+        return _observableThrow(response_) as any as Observable<OrderViewData[]>;
+    }));
+  }
+
+  protected processOrderAll(response: HttpResponseBase): Observable<OrderViewData[]> {
+    const status = response.status;
+    const responseBlob =
+      response instanceof HttpResponse ? response.body :
+        (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+    let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+    if (status === 200) {
+      return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200)
+            result200!.push(OrderViewData.fromJS(item));
+        }
+        else {
+          result200 = <any>null;
+        }
+        return _observableOf(result200);
+      }));
+    } else if (status !== 200 && status !== 204) {
+      return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      }));
+    }
+    return _observableOf(null as any);
+  }
+
+  /**
+   * @param body (optional)
+   * @return Success
+   */
+  orderPOST(body: OrderData | undefined): Observable<void> {
+    let url_ = this.baseUrl + "/Order/order";
+    url_ = url_.replace(/[?&]$/, "");
+
+    const content_ = JSON.stringify(body);
+
+    let options_ : any = {
+      body: content_,
+      observe: "response",
+      responseType: "blob",
+      headers: new HttpHeaders({
+        "Content-Type": "application/json",
+      })
+    };
+
+    return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+      return this.processOrderPOST(response_);
+    })).pipe(_observableCatch((response_: any) => {
+      if (response_ instanceof HttpResponseBase) {
+        try {
+          return this.processOrderPOST(response_ as any);
         } catch (e) {
           return _observableThrow(e) as any as Observable<void>;
         }
@@ -54,14 +210,14 @@ export class ApiClient {
     }));
   }
 
-  protected processItem(response: HttpResponseBase): Observable<void> {
+  protected processOrderPOST(response: HttpResponseBase): Observable<void> {
     const status = response.status;
     const responseBlob =
       response instanceof HttpResponse ? response.body :
         (response as any).error instanceof Blob ? (response as any).error : undefined;
 
     let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
-    if (status === 200) {
+    if (status === 204) {
       return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
         return _observableOf(null as any);
       }));
@@ -72,6 +228,575 @@ export class ApiClient {
     }
     return _observableOf(null as any);
   }
+
+  /**
+   * @param body (optional)
+   * @return Success
+   */
+  orderPUT(body: OrderViewData | undefined): Observable<void> {
+    let url_ = this.baseUrl + "/Order/order";
+    url_ = url_.replace(/[?&]$/, "");
+
+    const content_ = JSON.stringify(body);
+
+    let options_ : any = {
+      body: content_,
+      observe: "response",
+      responseType: "blob",
+      headers: new HttpHeaders({
+        "Content-Type": "application/json",
+      })
+    };
+
+    return this.http.request("put", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+      return this.processOrderPUT(response_);
+    })).pipe(_observableCatch((response_: any) => {
+      if (response_ instanceof HttpResponseBase) {
+        try {
+          return this.processOrderPUT(response_ as any);
+        } catch (e) {
+          return _observableThrow(e) as any as Observable<void>;
+        }
+      } else
+        return _observableThrow(response_) as any as Observable<void>;
+    }));
+  }
+
+  protected processOrderPUT(response: HttpResponseBase): Observable<void> {
+    const status = response.status;
+    const responseBlob =
+      response instanceof HttpResponse ? response.body :
+        (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+    let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+    if (status === 204) {
+      return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+        return _observableOf(null as any);
+      }));
+    } else if (status !== 200 && status !== 204) {
+      return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      }));
+    }
+    return _observableOf(null as any);
+  }
+
+  /**
+   * @param body (optional)
+   * @return Success
+   */
+  orderItem(body: number | undefined): Observable<void> {
+    let url_ = this.baseUrl + "/Order/order-item";
+    url_ = url_.replace(/[?&]$/, "");
+
+    const content_ = JSON.stringify(body);
+
+    let options_ : any = {
+      body: content_,
+      observe: "response",
+      responseType: "blob",
+      headers: new HttpHeaders({
+        "Content-Type": "application/json",
+      })
+    };
+
+    return this.http.request("delete", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+      return this.processOrderItem(response_);
+    })).pipe(_observableCatch((response_: any) => {
+      if (response_ instanceof HttpResponseBase) {
+        try {
+          return this.processOrderItem(response_ as any);
+        } catch (e) {
+          return _observableThrow(e) as any as Observable<void>;
+        }
+      } else
+        return _observableThrow(response_) as any as Observable<void>;
+    }));
+  }
+
+  protected processOrderItem(response: HttpResponseBase): Observable<void> {
+    const status = response.status;
+    const responseBlob =
+      response instanceof HttpResponse ? response.body :
+        (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+    let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+    if (status === 204) {
+      return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+        return _observableOf(null as any);
+      }));
+    } else if (status !== 200 && status !== 204) {
+      return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      }));
+    }
+    return _observableOf(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  filterModel(): Observable<OrderFilterModel> {
+    let url_ = this.baseUrl + "/Order/filter-model";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_ : any = {
+      observe: "response",
+      responseType: "blob",
+      headers: new HttpHeaders({
+        "Accept": "text/plain"
+      })
+    };
+
+    return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+      return this.processFilterModel(response_);
+    })).pipe(_observableCatch((response_: any) => {
+      if (response_ instanceof HttpResponseBase) {
+        try {
+          return this.processFilterModel(response_ as any);
+        } catch (e) {
+          return _observableThrow(e) as any as Observable<OrderFilterModel>;
+        }
+      } else
+        return _observableThrow(response_) as any as Observable<OrderFilterModel>;
+    }));
+  }
+
+  protected processFilterModel(response: HttpResponseBase): Observable<OrderFilterModel> {
+    const status = response.status;
+    const responseBlob =
+      response instanceof HttpResponse ? response.body :
+        (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+    let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+    if (status === 200) {
+      return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result200 = OrderFilterModel.fromJS(resultData200);
+        return _observableOf(result200);
+      }));
+    } else if (status !== 200 && status !== 204) {
+      return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      }));
+    }
+    return _observableOf(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  provider(): Observable<ProviderViewData[]> {
+    let url_ = this.baseUrl + "/Provider/provider";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_ : any = {
+      observe: "response",
+      responseType: "blob",
+      headers: new HttpHeaders({
+        "Accept": "text/plain"
+      })
+    };
+
+    return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+      return this.processProvider(response_);
+    })).pipe(_observableCatch((response_: any) => {
+      if (response_ instanceof HttpResponseBase) {
+        try {
+          return this.processProvider(response_ as any);
+        } catch (e) {
+          return _observableThrow(e) as any as Observable<ProviderViewData[]>;
+        }
+      } else
+        return _observableThrow(response_) as any as Observable<ProviderViewData[]>;
+    }));
+  }
+
+  protected processProvider(response: HttpResponseBase): Observable<ProviderViewData[]> {
+    const status = response.status;
+    const responseBlob =
+      response instanceof HttpResponse ? response.body :
+        (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+    let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+    if (status === 200) {
+      return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200)
+            result200!.push(ProviderViewData.fromJS(item));
+        }
+        else {
+          result200 = <any>null;
+        }
+        return _observableOf(result200);
+      }));
+    } else if (status !== 200 && status !== 204) {
+      return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      }));
+    }
+    return _observableOf(null as any);
+  }
+}
+
+export class OrderData implements IOrderData {
+  number?: string | undefined;
+  date?: Date | undefined;
+  providerId?: number;
+  orderItems?: OrderItemData[] | undefined;
+
+  constructor(data?: IOrderData) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property))
+          (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.number = _data["number"];
+      this.date = _data["date"] ? new Date(_data["date"].toString()) : <any>undefined;
+      this.providerId = _data["providerId"];
+      if (Array.isArray(_data["orderItems"])) {
+        this.orderItems = [] as any;
+        for (let item of _data["orderItems"])
+          this.orderItems!.push(OrderItemData.fromJS(item));
+      }
+    }
+  }
+
+  static fromJS(data: any): OrderData {
+    data = typeof data === 'object' ? data : {};
+    let result = new OrderData();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === 'object' ? data : {};
+    data["number"] = this.number;
+    data["date"] = this.date ? this.date.toISOString() : <any>undefined;
+    data["providerId"] = this.providerId;
+    if (Array.isArray(this.orderItems)) {
+      data["orderItems"] = [];
+      for (let item of this.orderItems)
+        data["orderItems"].push(item.toJSON());
+    }
+    return data;
+  }
+}
+
+export interface IOrderData {
+  number?: string | undefined;
+  date?: Date | undefined;
+  providerId?: number;
+  orderItems?: OrderItemData[] | undefined;
+}
+
+export class OrderFilterModel implements IOrderFilterModel {
+  dateFrom?: Date | undefined;
+  dateTo?: Date | undefined;
+  orderNumbers?: string[] | undefined;
+  providerIds?: number[] | undefined;
+  orderItemUnits?: string[] | undefined;
+  orderItemNames?: string[] | undefined;
+  providerNames?: string[] | undefined;
+
+  constructor(data?: IOrderFilterModel) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property))
+          (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.dateFrom = _data["dateFrom"] ? new Date(_data["dateFrom"].toString()) : <any>undefined;
+      this.dateTo = _data["dateTo"] ? new Date(_data["dateTo"].toString()) : <any>undefined;
+      if (Array.isArray(_data["orderNumbers"])) {
+        this.orderNumbers = [] as any;
+        for (let item of _data["orderNumbers"])
+          this.orderNumbers!.push(item);
+      }
+      if (Array.isArray(_data["providerIds"])) {
+        this.providerIds = [] as any;
+        for (let item of _data["providerIds"])
+          this.providerIds!.push(item);
+      }
+      if (Array.isArray(_data["orderItemUnits"])) {
+        this.orderItemUnits = [] as any;
+        for (let item of _data["orderItemUnits"])
+          this.orderItemUnits!.push(item);
+      }
+      if (Array.isArray(_data["orderItemNames"])) {
+        this.orderItemNames = [] as any;
+        for (let item of _data["orderItemNames"])
+          this.orderItemNames!.push(item);
+      }
+      if (Array.isArray(_data["providerNames"])) {
+        this.providerNames = [] as any;
+        for (let item of _data["providerNames"])
+          this.providerNames!.push(item);
+      }
+    }
+  }
+
+  static fromJS(data: any): OrderFilterModel {
+    data = typeof data === 'object' ? data : {};
+    let result = new OrderFilterModel();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === 'object' ? data : {};
+    data["dateFrom"] = this.dateFrom ? this.dateFrom.toISOString() : <any>undefined;
+    data["dateTo"] = this.dateTo ? this.dateTo.toISOString() : <any>undefined;
+    if (Array.isArray(this.orderNumbers)) {
+      data["orderNumbers"] = [];
+      for (let item of this.orderNumbers)
+        data["orderNumbers"].push(item);
+    }
+    if (Array.isArray(this.providerIds)) {
+      data["providerIds"] = [];
+      for (let item of this.providerIds)
+        data["providerIds"].push(item);
+    }
+    if (Array.isArray(this.orderItemUnits)) {
+      data["orderItemUnits"] = [];
+      for (let item of this.orderItemUnits)
+        data["orderItemUnits"].push(item);
+    }
+    if (Array.isArray(this.orderItemNames)) {
+      data["orderItemNames"] = [];
+      for (let item of this.orderItemNames)
+        data["orderItemNames"].push(item);
+    }
+    if (Array.isArray(this.providerNames)) {
+      data["providerNames"] = [];
+      for (let item of this.providerNames)
+        data["providerNames"].push(item);
+    }
+    return data;
+  }
+}
+
+export interface IOrderFilterModel {
+  dateFrom?: Date | undefined;
+  dateTo?: Date | undefined;
+  orderNumbers?: string[] | undefined;
+  providerIds?: number[] | undefined;
+  orderItemUnits?: string[] | undefined;
+  orderItemNames?: string[] | undefined;
+  providerNames?: string[] | undefined;
+}
+
+export class OrderItemData implements IOrderItemData {
+  name?: string | undefined;
+  quantity?: number;
+  unit?: string | undefined;
+
+  constructor(data?: IOrderItemData) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property))
+          (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.name = _data["name"];
+      this.quantity = _data["quantity"];
+      this.unit = _data["unit"];
+    }
+  }
+
+  static fromJS(data: any): OrderItemData {
+    data = typeof data === 'object' ? data : {};
+    let result = new OrderItemData();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === 'object' ? data : {};
+    data["name"] = this.name;
+    data["quantity"] = this.quantity;
+    data["unit"] = this.unit;
+    return data;
+  }
+}
+
+export interface IOrderItemData {
+  name?: string | undefined;
+  quantity?: number;
+  unit?: string | undefined;
+}
+
+export class OrderItemViewData implements IOrderItemViewData {
+  id?: number | undefined;
+  orderId?: number;
+  name?: string | undefined;
+  quantity?: number;
+  unit?: string | undefined;
+
+  constructor(data?: IOrderItemViewData) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property))
+          (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.id = _data["id"];
+      this.orderId = _data["orderId"];
+      this.name = _data["name"];
+      this.quantity = _data["quantity"];
+      this.unit = _data["unit"];
+    }
+  }
+
+  static fromJS(data: any): OrderItemViewData {
+    data = typeof data === 'object' ? data : {};
+    let result = new OrderItemViewData();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === 'object' ? data : {};
+    data["id"] = this.id;
+    data["orderId"] = this.orderId;
+    data["name"] = this.name;
+    data["quantity"] = this.quantity;
+    data["unit"] = this.unit;
+    return data;
+  }
+}
+
+export interface IOrderItemViewData {
+  id?: number | undefined;
+  orderId?: number;
+  name?: string | undefined;
+  quantity?: number;
+  unit?: string | undefined;
+}
+
+export class OrderViewData implements IOrderViewData {
+  id?: number | undefined;
+  number?: string | undefined;
+  date?: Date | undefined;
+  providerId?: number;
+  provider?: ProviderViewData;
+  orderItems?: OrderItemViewData[] | undefined;
+
+  constructor(data?: IOrderViewData) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property))
+          (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.id = _data["id"];
+      this.number = _data["number"];
+      this.date = _data["date"] ? new Date(_data["date"].toString()) : <any>undefined;
+      this.providerId = _data["providerId"];
+      this.provider = _data["provider"] ? ProviderViewData.fromJS(_data["provider"]) : <any>undefined;
+      if (Array.isArray(_data["orderItems"])) {
+        this.orderItems = [] as any;
+        for (let item of _data["orderItems"])
+          this.orderItems!.push(OrderItemViewData.fromJS(item));
+      }
+    }
+  }
+
+  static fromJS(data: any): OrderViewData {
+    data = typeof data === 'object' ? data : {};
+    let result = new OrderViewData();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === 'object' ? data : {};
+    data["id"] = this.id;
+    data["number"] = this.number;
+    data["date"] = this.date ? this.date.toISOString() : <any>undefined;
+    data["providerId"] = this.providerId;
+    data["provider"] = this.provider ? this.provider.toJSON() : <any>undefined;
+    if (Array.isArray(this.orderItems)) {
+      data["orderItems"] = [];
+      for (let item of this.orderItems)
+        data["orderItems"].push(item.toJSON());
+    }
+    return data;
+  }
+}
+
+export interface IOrderViewData {
+  id?: number | undefined;
+  number?: string | undefined;
+  date?: Date | undefined;
+  providerId?: number;
+  provider?: ProviderViewData;
+  orderItems?: OrderItemViewData[] | undefined;
+}
+
+export class ProviderViewData implements IProviderViewData {
+  id?: number;
+  name?: string | undefined;
+
+  constructor(data?: IProviderViewData) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property))
+          (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.id = _data["id"];
+      this.name = _data["name"];
+    }
+  }
+
+  static fromJS(data: any): ProviderViewData {
+    data = typeof data === 'object' ? data : {};
+    let result = new ProviderViewData();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === 'object' ? data : {};
+    data["id"] = this.id;
+    data["name"] = this.name;
+    return data;
+  }
+}
+
+export interface IProviderViewData {
+  id?: number;
+  name?: string | undefined;
 }
 
 export class ApiException extends Error {

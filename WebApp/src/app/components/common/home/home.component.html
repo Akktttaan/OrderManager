@@ -75,21 +75,11 @@
     <td mat-cell *matCellDef="let element"> {{element.provider.name}} </td>
   </ng-container>
 
-  <ng-container matColumnDef="actions">
-    <th mat-header-cell *matHeaderCellDef></th>
-    <td mat-cell *matCellDef="let element" class="action-cell">
-      <button mat-button (click)="editOrder(element)">
-        <mat-icon aria-label="Edit">edit</mat-icon>
-      </button>
-      <button mat-button (click)="deleteOrder(element)">
-        <mat-icon aria-label="Delete">delete</mat-icon>
-      </button>
-    </td>
-  </ng-container>
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row class="custom-row"
       *matRowDef="let row;
       columns: displayedColumns;"
+      (click)="openOrder($event, row)"
   ></tr>
 </table>
 

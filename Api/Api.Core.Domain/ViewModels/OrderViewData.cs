@@ -10,7 +10,7 @@ public class OrderViewData
     /// <summary>
     /// Номер
     /// </summary>
-    public string Number { get; set; }
+    public string? Number { get; set; }
 
     /// <summary>
     /// Дата
@@ -20,15 +20,15 @@ public class OrderViewData
     /// <summary>
     /// Идентификатор поставщика
     /// </summary>
-    public int ProviderId { get; set; }
+    public int? ProviderId { get; set; }
 
     /// <summary>
     /// Поставщик
     /// </summary>
-    public ProviderViewData Provider { get; set; }
+    public ProviderViewData? Provider { get; set; }
 
     /// <summary>
     /// Детали заказа
     /// </summary>
-    public IList<OrderItemViewData> OrderItems { get; set; }
+    public IList<OrderItemViewData>? OrderItems { get; set; }
 }

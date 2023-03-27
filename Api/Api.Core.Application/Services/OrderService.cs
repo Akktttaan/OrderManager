@@ -1,4 +1,5 @@
-﻿using Application.Interfaces.Services;
+﻿using Application.Extensions;
+using Application.Interfaces.Services;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Dal.Interfaces;
@@ -29,17 +30,41 @@ public class OrderService : IOrderService
     /// </summary>
     public async Task AddOrder(OrderData order)
     {
-        var model = _mapper.Map<Order>(order);
-        await _unitOfWork.GetRepository<Order>().AddAsync(model);
+        await _unitOfWork.GetRepository<Order>().AddAsync(_mapper.Map<Order>(order));
+        try
+        {
+            await _unitOfWork.SaveChanges();
+        }
+        catch (DbUpdateException e)
+        {
+            throw new Exception(
+                $"В базе данных уже существует запись с номером: {order.Number} и поставщиком {order.ProviderId}");
+        }
+    }
+
+    public async Task DeleteOrder(OrderViewData order)
+    {
+        _unitOfWork.GetRepository<Order>().Delete(_mapper.Map<Order>(order));
         await _unitOfWork.SaveChanges();
     }
 
+    /// <summary>
+    /// Обновить заказ
+    /// </summary>
     public async Task UpdateOrder(OrderViewData order)
     {
         var entity = _mapper.Map<Order>(order);
 
         _unitOfWork.GetRepository<Order>().Update(entity);
-        await _unitOfWork.SaveChanges();
+        try
+        {
+            await _unitOfWork.SaveChanges();
+        }
+        catch (DbUpdateException e)
+        {
+            throw new Exception(
+                $"В базе данных уже существует запись с номером: {order.Number} и поставщиком{order.ProviderId}");
+        }
     }
 
     /// <summary>
@@ -47,44 +72,29 @@ public class OrderService : IOrderService
     /// </summary>
     public async Task<OrderViewData[]> GetOrders(OrderFilterModel filterModel)
     {
-        var orders = _unitOfWork
+        var orders = await _unitOfWork
             .GetRepository<Order>()
-            .GetAll();
-        if (filterModel.DateFrom is not null && filterModel.DateTo is not null)
-        {
-            orders = orders.Where(x => x.Date >= filterModel.DateFrom && x.Date <= filterModel.DateTo);
-        }
-        else if (filterModel.OrderNumbers is not null)
-        {
-            orders = orders.Where(x => filterModel.OrderNumbers.Contains(x.Number));
-        }
-        else if (filterModel.ProviderIds is not null)
-        {
-            orders = orders.Where(x => filterModel.ProviderIds.Contains(x.ProviderId));
-        }
-        else if (filterModel.OrderItemUnits is not null)
-        {
-            orders = orders.Where(x => x.OrderItems.Any(y => filterModel.OrderItemUnits.Contains(y.Unit)));
-        }
-        else if (filterModel.OrderItemNames is not null)
-        {
-            orders = orders.Where(x => x.OrderItems.Any(y => filterModel.OrderItemNames.Contains(y.Name)));
-        }
-        else if (filterModel.ProviderNames is not null)
-        {
-            orders = orders.Where(x => filterModel.ProviderNames.Contains(x.Provider.Name));
-        }
-
-        var result = await orders
+            .GetAll()
+            .When(filterModel is { DateTo: { }, DateFrom: { } }, then =>
+                then.Where(x => x.Date >= filterModel.DateFrom && x.Date <= filterModel.DateTo))
+            .When(filterModel.OrderNumbers is not null, then =>
+                then.Where(x => filterModel.OrderNumbers.Contains(x.Number)))
+            .When(filterModel.ProviderIds is not null, then =>
+                then.Where(x => filterModel.ProviderIds.Contains(x.ProviderId)))
+            .When(filterModel.OrderItemUnits is not null, then =>
+                then.Where(x => x.OrderItems.Any(y => filterModel.OrderItemUnits.Contains(y.Unit))))
+            .When(filterModel.OrderItemNames is not null, then =>
+                then.Where(x => x.OrderItems.Any(y => filterModel.OrderItemNames.Contains(y.Name))))
+            .When(filterModel.ProviderNames is not null, then =>
+                then.Where(x => filterModel.ProviderNames.Contains(x.Provider.Name)))
             .Include(x => x.Provider)
             .Include(x => x.OrderItems)
             .ProjectTo<OrderViewData>(_mapper.ConfigurationProvider)
             .ToArrayAsync();
 
-
-        return result;
+        return orders;
     }
-    
+
     /// <summary>
     /// Получить заказы
     /// </summary>
@@ -129,5 +139,15 @@ public class OrderService : IOrderService
         };
 
         return filterModel;
+    }
+
+    public async Task<OrderViewData> GetOrderById(int id)
+    { 
+        return await _unitOfWork.GetRepository<Order>()
+            .Where(x => x.Id == id)
+            .Include(x => x.Provider)
+            .Include(x => x.OrderItems)
+            .ProjectTo<OrderViewData>(_mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync();
     }
 }

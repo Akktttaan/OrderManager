@@ -54,7 +54,26 @@ public class OrderController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> AddOrder([FromBody] OrderData order)
     {
-        await _orderService.AddOrder(order);
+        try
+        {
+            await _orderService.AddOrder(order);
+            return NoContent();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    /// <summary>
+    /// Удалить заказ
+    /// </summary>
+    [HttpDelete("order")]
+    [ProducesResponseType(204)]
+    [AllowAnonymous]
+    public async Task<IActionResult> DeleteOrder([FromBody] OrderViewData order)
+    {
+        await _orderService.DeleteOrder(order);
 
         return NoContent();
     }
@@ -67,9 +86,15 @@ public class OrderController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> UpdateOrder([FromBody] OrderViewData order)
     {
-        await _orderService.UpdateOrder(order);
-        
-        return NoContent();
+        try
+        {
+            await _orderService.UpdateOrder(order);
+            return NoContent();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     /// <summary>
@@ -83,6 +108,19 @@ public class OrderController : Controller
         await _orderService.DeleteOrderItem(orderItemId);
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Вернуть заказа по идентификатору
+    /// </summary>
+    [HttpGet("order-by-id")]
+    [ProducesResponseType(typeof(OrderViewData), 200)]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetOrderById([FromQuery] int id)
+    {
+        var result = await _orderService.GetOrderById(id);
+
+        return Ok(result);
     }
 
     /// <summary>

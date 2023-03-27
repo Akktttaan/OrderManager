@@ -13,17 +13,38 @@
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
     <mat-form-field appearance="outline">
-      <mat-label>Номер</mat-label>
+      <mat-label>Поставщик</mat-label>
       <mat-select formControlName="providerId">
         <mat-option *ngFor="let item of providers" [value]="item.id">{{item.name}}</mat-option>
       </mat-select>
     </mat-form-field>
-    <button mat-raised-button color="primary" type="button">Добавить строку заказа</button>
-    
+    <br>
+    <button mat-raised-button color="primary" type="button" (click)="addOrderItem()">Добавить строку заказа</button>
+    <div formArrayName="orderItems" style="margin-top: 20px">
+      <ng-container *ngFor="let orderItemForm of getOrderItemFormGroups(); let i = index">
+        <div [formGroup]="orderItemForm">
+          <mat-form-field appearance="outline">
+            <mat-label>Наименование</mat-label>
+            <input type="text" matInput formControlName="name">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Количество</mat-label>
+            <input type="number" matInput formControlName="quantity">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Единица</mat-label>
+            <input type="text" matInput formControlName="unit">
+          </mat-form-field>
+          <button mat-raised-button type="button" color="warn" (click)="deleteOrderItem(i)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </ng-container>
+    </div>
   </div>
   <div mat-dialog-actions>
-    <button mat-button type="button" (click)="onNoClick()">Отмена</button>
-    <button mat-button type="submit" (click)="onSubmit()">Сохранить</button>
+    <button mat-raised-button color="warn" type="button" (click)="onNoClick()">Отмена</button>
+    <button mat-raised-button color="accent" type="submit" (click)="onSubmit()">Сохранить</button>
   </div>
 </form>
 

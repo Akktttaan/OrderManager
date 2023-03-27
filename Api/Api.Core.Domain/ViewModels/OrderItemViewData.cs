@@ -10,20 +10,20 @@ public class OrderItemViewData
     /// <summary>
     /// Идентификатор заказа
     /// </summary>
-    public int OrderId { get; set; }
+    public int? OrderId { get; set; }
     
     /// <summary>
     /// Наименование
     /// </summary>
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     /// <summary>
     /// Количество
     /// </summary>
-    public decimal Quantity { get; set; }
+    public decimal? Quantity { get; set; }
 
     /// <summary>
     /// Единица
     /// </summary>
-    public string Unit { get; set; }
+    public string? Unit { get; set; }
 }

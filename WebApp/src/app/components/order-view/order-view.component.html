@@ -1,0 +1,57 @@
+<h1>Просмотр заказа</h1>
+
+<mat-form-field appearance="outline">
+  <mat-label>Идентификатор</mat-label>
+  <input matInput type="text" readonly [(ngModel)]="order.id">
+</mat-form-field>
+<mat-form-field appearance="outline">
+  <mat-label>Номер</mat-label>
+  <input matInput type="text" readonly [(ngModel)]="order.number">
+</mat-form-field>
+<mat-form-field appearance="outline">
+  <mat-label>Дата</mat-label>
+  <input readonly matInput [matDatepicker]="picker" [(ngModel)]="order.date">
+  <mat-hint>MM/DD/YYYY</mat-hint>
+  <mat-datepicker #picker></mat-datepicker>
+</mat-form-field>
+<mat-form-field appearance="outline">
+  <mat-label>Идентификатор поставщика</mat-label>
+  <input matInput type="text" readonly [(ngModel)]="order.providerId">
+</mat-form-field>
+<mat-form-field appearance="outline">
+  <mat-label>Наименование поставщика</mat-label>
+  <input matInput type="text" readonly [(ngModel)]="providerName">
+</mat-form-field>
+
+<button mat-raised-button color="primary" (click)="deleteOrder()">Удалить заказ</button>
+<button mat-raised-button color="accent" (click)="editOrder()" style="margin-left: 30px">Редактировать заказ</button>
+
+<h2>Детали заказа</h2>
+<table mat-table [dataSource]="orderItems" >
+  <ng-container matColumnDef="id">
+    <th mat-header-cell *matHeaderCellDef> Идентификатор </th>
+    <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="name">
+    <th mat-header-cell *matHeaderCellDef> Наименование </th>
+    <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="quantity">
+    <th mat-header-cell *matHeaderCellDef> Количество </th>
+    <td mat-cell *matCellDef="let element"> {{element.quantity}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="unit">
+    <th mat-header-cell *matHeaderCellDef> Единица </th>
+    <td mat-cell *matCellDef="let element"> {{element.unit}} </td>
+  </ng-container>
+
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row class="custom-row"
+      *matRowDef="let row;
+      columns: displayedColumns;"
+  ></tr>
+</table>
